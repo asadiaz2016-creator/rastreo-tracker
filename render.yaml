@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: rastreo-tracker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /estado
+    envVars:
+      # Paste your Neon connection string here (Render dashboard -> this
+      # service -> Environment). Using Neon instead of Render's own free
+      # Postgres because Render deletes free-tier databases after 90
+      # days -- Neon's free tier has no expiration. See README for setup.
+      - key: DATABASE_URL
+        sync: false

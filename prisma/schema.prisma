@@ -1,0 +1,64 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum ItemType {
+  CAJA
+  PLATAFORMA
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  // "Patio" is the only protected location -- it can never be deleted,
+  // since it's the default/base location every item falls back to.
+  isDefault Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  items         Item[]
+  movementsFrom Movement[] @relation("MovementFrom")
+  movementsTo   Movement[] @relation("MovementTo")
+}
+
+model Item {
+  id   String   @id @default(cuid())
+  code String   @unique
+  type ItemType
+
+  currentLocationId String
+  currentLocation   Location @relation(fields: [currentLocationId], references: [id])
+  // When the item arrived at currentLocation -- used to compute "days in
+  // this location" without re-scanning the movement history every time.
+  currentLocationSince DateTime @default(now())
+
+  lastMaintenanceAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  movements Movement[]
+
+  @@index([currentLocationId])
+}
+
+model Movement {
+  id     String @id @default(cuid())
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id])
+
+  fromLocationId String?
+  fromLocation   Location? @relation("MovementFrom", fields: [fromLocationId], references: [id])
+  toLocationId   String
+  toLocation     Location  @relation("MovementTo", fields: [toLocationId], references: [id])
+
+  note String?
+
+  createdAt DateTime @default(now())
+
+  @@index([itemId, createdAt])
+}
