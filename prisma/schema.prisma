@@ -57,7 +57,9 @@ model Item {
 model Movement {
   id     String @id @default(cuid())
   itemId String
-  item   Item   @relation(fields: [itemId], references: [id])
+  // onDelete: Cascade -- borrar una caja/plataforma (p.ej. porque se
+  // vendio o se dio de baja) tambien borra su historial de movimientos.
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   fromLocationId String?
   fromLocation   Location? @relation("MovementFrom", fields: [fromLocationId], references: [id])

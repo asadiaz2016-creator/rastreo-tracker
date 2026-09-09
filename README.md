@@ -18,7 +18,9 @@ computadora) ve y edita la misma informacion en vivo, desde un solo link.
   registro) con boton "marcar hecho hoy". Si hay unidades vencidas,
   aparece un banner rojo en todas las pantallas.
 - **Administrar**: agregar unidades nuevas (una por una o pegando una
-  lista), agregar/quitar destinos, ver totales.
+  lista), eliminar unidades que ya no se usan o se vendieron (borra
+  tambien su historial, pide confirmacion antes), agregar/quitar
+  destinos, ver totales.
 
 ## Modo administrador y modo consulta
 

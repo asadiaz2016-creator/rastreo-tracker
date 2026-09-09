@@ -45,3 +45,19 @@ export async function agregarItems(input: {
 
   return { ok: true, agregados: nuevos.length, omitidos: [...existentesSet] };
 }
+
+export async function eliminarItem(
+  id: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if ((await getRole()) !== "ADMIN") {
+    return { ok: false, error: "Se requiere modo administrador." };
+  }
+
+  const item = await prisma.item.findUnique({ where: { id } });
+  if (!item) return { ok: false, error: "No se encontro esa caja/plataforma." };
+
+  // Borra tambien su historial de movimientos (onDelete: Cascade en el schema).
+  await prisma.item.delete({ where: { id } });
+
+  return { ok: true };
+}
