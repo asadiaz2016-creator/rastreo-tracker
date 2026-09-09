@@ -1,4 +1,4 @@
-# Rastreo de Flotilla -- Custom Crates & Pallets
+# Rastreo de Cajas y Plataformas -- Custom Crates & Pallets
 
 App web para rastrear la ubicacion de las cajas de trailer y plataformas
 de la flotilla. Todo el equipo (choferes desde el celular, despacho desde

@@ -4,7 +4,7 @@ import NavTabs from "@/components/NavTabs";
 import MaintenanceBanner from "@/components/MaintenanceBanner";
 
 export const metadata: Metadata = {
-  title: "Rastreo de Flotilla -- CCP",
+  title: "Rastreo de Cajas y Plataformas -- CCP",
   description: "Rastreo de cajas de trailer y plataformas -- Custom Crates & Pallets",
 };
 
@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="text-[11px] tracking-[0.14em] uppercase text-orange font-bold mb-0.5">
               Custom Crates &amp; Pallets
             </div>
-            <h1 className="m-0 text-xl font-extrabold tracking-tight">Rastreo de Flotilla</h1>
+            <h1 className="m-0 text-xl font-extrabold tracking-tight">Rastreo de Cajas y Plataformas</h1>
           </header>
           <NavTabs />
           <MaintenanceBanner />
