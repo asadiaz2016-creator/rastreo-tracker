@@ -1,10 +1,14 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { getRole } from "@/lib/session";
 
 export async function marcarMantenimientoHecho(
   itemId: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  if ((await getRole()) !== "ADMIN") {
+    return { ok: false, error: "Se requiere modo administrador." };
+  }
   if (!itemId) return { ok: false, error: "Falta el identificador." };
   const item = await prisma.item.findUnique({ where: { id: itemId } });
   if (!item) return { ok: false, error: "No se encontro esa caja/plataforma." };

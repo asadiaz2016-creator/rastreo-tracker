@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { getRole } from "@/lib/session";
 import { z } from "zod";
 
 const schema = z.object({ name: z.string().trim().min(1).max(100) });
@@ -8,6 +9,10 @@ const schema = z.object({ name: z.string().trim().min(1).max(100) });
 export async function agregarDestino(
   input: { name: string },
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  if ((await getRole()) !== "ADMIN") {
+    return { ok: false, error: "Se requiere modo administrador." };
+  }
+
   const parsed = schema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "El nombre no puede estar vacio." };
 
@@ -23,6 +28,10 @@ export async function agregarDestino(
 export async function eliminarDestino(
   id: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  if ((await getRole()) !== "ADMIN") {
+    return { ok: false, error: "Se requiere modo administrador." };
+  }
+
   const location = await prisma.location.findUnique({
     where: { id },
     include: { _count: { select: { items: true } } },

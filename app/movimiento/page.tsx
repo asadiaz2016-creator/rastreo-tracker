@@ -4,8 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import type { ItemDTO, LocationDTO } from "@/lib/types";
 import { registrarMovimiento } from "@/app/actions/movements";
+import { useRole } from "@/components/RoleContext";
+import { PinModal } from "@/components/PinModal";
 
 export default function MovimientoPage() {
+  const { role } = useRole();
+  const [showPinModal, setShowPinModal] = useState(false);
   const [items, setItems] = useState<ItemDTO[]>([]);
   const [locations, setLocations] = useState<LocationDTO[]>([]);
   const [search, setSearch] = useState("");
@@ -57,6 +61,21 @@ export default function MovimientoPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      {role !== "ADMIN" && (
+        <div className="bg-amber/10 border border-amber rounded-lg p-3 flex items-center justify-between gap-2">
+          <p className="text-sm text-ink">
+            Solo en modo administrador se pueden registrar movimientos.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowPinModal(true)}
+            className="text-xs font-bold text-orange whitespace-nowrap"
+          >
+            Entrar como admin
+          </button>
+        </div>
+      )}
+      <fieldset disabled={role !== "ADMIN"} className="flex flex-col gap-4 disabled:opacity-60">
       <section>
         <label className="block text-xs font-bold uppercase tracking-wide text-steel mb-1">
           1. Selecciona la caja o plataforma
@@ -150,6 +169,9 @@ export default function MovimientoPage() {
           {saving ? "Guardando..." : "Registrar movimiento"}
         </button>
       </form>
+      </fieldset>
+
+      {showPinModal && <PinModal onClose={() => setShowPinModal(false)} />}
     </div>
   );
 }

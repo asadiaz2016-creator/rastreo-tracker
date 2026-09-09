@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { getRole } from "@/lib/session";
 import { z } from "zod";
 
 const schema = z.object({
@@ -14,6 +15,10 @@ export async function registrarMovimiento(input: {
   toLocationId: string;
   note?: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
+  if ((await getRole()) !== "ADMIN") {
+    return { ok: false, error: "Se requiere modo administrador." };
+  }
+
   const parsed = schema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Datos invalidos." };
   const { itemId, toLocationId, note } = parsed.data;

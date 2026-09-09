@@ -12,6 +12,14 @@ enum ItemType {
   PLATAFORMA
 }
 
+// Single-row table holding app-wide settings. The admin PIN is never
+// stored or checked in plaintext -- only its bcrypt hash lives here, and
+// it is only ever compared server-side (see lib/session.ts).
+model Settings {
+  id           Int    @id @default(1)
+  adminPinHash String
+}
+
 model Location {
   id        String   @id @default(cuid())
   name      String   @unique

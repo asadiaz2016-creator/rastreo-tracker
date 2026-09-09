@@ -13,3 +13,9 @@ services:
       # days -- Neon's free tier has no expiration. See README for setup.
       - key: DATABASE_URL
         sync: false
+      - key: AUTH_SECRET
+        generateValue: true
+      # PIN de administrador -- solo se usa para crear el hash inicial la
+      # primera vez que el seed corre contra una base de datos nueva.
+      - key: ADMIN_PIN
+        sync: false

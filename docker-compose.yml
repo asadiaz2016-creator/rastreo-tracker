@@ -26,6 +26,8 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://rastreo_tracker:rastreo_tracker_dev@db:5432/rastreo_tracker
+      AUTH_SECRET: dev-secret-change-in-production
+      ADMIN_PIN: "2468"
     ports:
       - "3002:3000"
     volumes:

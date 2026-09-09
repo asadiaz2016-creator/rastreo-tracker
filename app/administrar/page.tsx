@@ -6,8 +6,12 @@ import { ItemType } from "@prisma/client";
 import type { ItemDTO, LocationDTO } from "@/lib/types";
 import { agregarItems } from "@/app/actions/items";
 import { agregarDestino, eliminarDestino } from "@/app/actions/locations";
+import { useRole } from "@/components/RoleContext";
+import { PinModal } from "@/components/PinModal";
 
 export default function AdministrarPage() {
+  const { role } = useRole();
+  const [showPinModal, setShowPinModal] = useState(false);
   const [items, setItems] = useState<ItemDTO[]>([]);
   const [locations, setLocations] = useState<LocationDTO[]>([]);
 
@@ -97,10 +101,26 @@ export default function AdministrarPage() {
         </div>
       </section>
 
+      {role !== "ADMIN" && (
+        <div className="bg-amber/10 border border-amber rounded-lg p-3 flex items-center justify-between gap-2">
+          <p className="text-sm text-ink">
+            Solo en modo administrador se pueden agregar unidades o destinos.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowPinModal(true)}
+            className="text-xs font-bold text-orange whitespace-nowrap"
+          >
+            Entrar como admin
+          </button>
+        </div>
+      )}
+
       <section>
         <h2 className="text-xs font-bold uppercase tracking-wide text-steel mb-2">
           Agregar cajas/plataformas
         </h2>
+        <fieldset disabled={role !== "ADMIN"} className="disabled:opacity-60">
         <form onSubmit={handleBulkSubmit} className="flex flex-col gap-2">
           <div className="flex gap-2">
             {([ItemType.CAJA, ItemType.PLATAFORMA] as ItemType[]).map((t) => (
@@ -133,26 +153,29 @@ export default function AdministrarPage() {
             {savingBulk ? "Guardando..." : "Agregar"}
           </button>
         </form>
+        </fieldset>
       </section>
 
       <section>
         <h2 className="text-xs font-bold uppercase tracking-wide text-steel mb-2">Destinos</h2>
-        <form onSubmit={handleAgregarDestino} className="flex gap-2 mb-2">
-          <input
-            type="text"
-            value={nuevoDestino}
-            onChange={(e) => setNuevoDestino(e.target.value)}
-            placeholder="Nuevo destino..."
-            className="flex-1 rounded-md border border-line bg-white px-3 py-2 text-sm"
-          />
-          <button
-            type="submit"
-            disabled={savingDestino}
-            className="rounded-md bg-ink text-paper font-bold px-4 py-2 text-sm disabled:opacity-40"
-          >
-            Agregar
-          </button>
-        </form>
+        {role === "ADMIN" && (
+          <form onSubmit={handleAgregarDestino} className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={nuevoDestino}
+              onChange={(e) => setNuevoDestino(e.target.value)}
+              placeholder="Nuevo destino..."
+              className="flex-1 rounded-md border border-line bg-white px-3 py-2 text-sm"
+            />
+            <button
+              type="submit"
+              disabled={savingDestino}
+              className="rounded-md bg-ink text-paper font-bold px-4 py-2 text-sm disabled:opacity-40"
+            >
+              Agregar
+            </button>
+          </form>
+        )}
         {destinoMsg && <p className="text-sm font-bold text-red mb-2">{destinoMsg}</p>}
         <div className="flex flex-col gap-1">
           {locations.map((loc) => (
@@ -163,7 +186,7 @@ export default function AdministrarPage() {
               <span>
                 {loc.name} <span className="text-steel">({loc.itemCount})</span>
               </span>
-              {!loc.isDefault && (
+              {!loc.isDefault && role === "ADMIN" && (
                 <button
                   type="button"
                   onClick={() => handleEliminarDestino(loc.id)}
@@ -176,6 +199,8 @@ export default function AdministrarPage() {
           ))}
         </div>
       </section>
+
+      {showPinModal && <PinModal onClose={() => setShowPinModal(false)} />}
     </div>
   );
 }

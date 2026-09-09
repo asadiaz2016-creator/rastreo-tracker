@@ -1,4 +1,5 @@
 import { PrismaClient, ItemType } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -30,6 +31,15 @@ const DESTINOS = [
 ];
 
 async function main() {
+  // Solo crea el hash la primera vez -- no pisa un PIN que ya haya sido
+  // cambiado en una base de datos existente.
+  const existingSettings = await prisma.settings.findUnique({ where: { id: 1 } });
+  if (!existingSettings) {
+    const adminPin = process.env.ADMIN_PIN ?? "2468";
+    const adminPinHash = await bcrypt.hash(adminPin, 10);
+    await prisma.settings.create({ data: { id: 1, adminPinHash } });
+  }
+
   const patio = await prisma.location.upsert({
     where: { name: "Patio" },
     update: {},

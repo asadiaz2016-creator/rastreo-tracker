@@ -5,6 +5,7 @@ import clsx from "clsx";
 import type { ItemDTO } from "@/lib/types";
 import { formatDate } from "@/lib/format";
 import { marcarMantenimientoHecho } from "@/app/actions/maintenance";
+import { useRole } from "@/components/RoleContext";
 
 const ORDEN_ESTATUS = { vencido: 0, proximo: 1, aldia: 2, sin_registro: 3 } as const;
 
@@ -16,6 +17,7 @@ const ESTILOS = {
 } as const;
 
 export default function MantenimientoPage() {
+  const { role } = useRole();
   const [items, setItems] = useState<ItemDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -63,14 +65,16 @@ export default function MantenimientoPage() {
               Ultimo mantenimiento: {formatDate(item.lastMaintenanceAt)}
               {item.nextMaintenanceDate && <> -- proximo: {formatDate(item.nextMaintenanceDate)}</>}
             </div>
-            <button
-              type="button"
-              onClick={() => marcarHecho(item.id)}
-              disabled={savingId === item.id}
-              className="mt-2 text-xs font-bold rounded-md border border-line px-3 py-1.5 hover:border-orange disabled:opacity-40"
-            >
-              {savingId === item.id ? "Guardando..." : "Marcar hecho hoy"}
-            </button>
+            {role === "ADMIN" && (
+              <button
+                type="button"
+                onClick={() => marcarHecho(item.id)}
+                disabled={savingId === item.id}
+                className="mt-2 text-xs font-bold rounded-md border border-line px-3 py-1.5 hover:border-orange disabled:opacity-40"
+              >
+                {savingId === item.id ? "Guardando..." : "Marcar hecho hoy"}
+              </button>
+            )}
           </div>
         );
       })}

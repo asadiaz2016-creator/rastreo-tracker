@@ -20,7 +20,21 @@ computadora) ve y edita la misma informacion en vivo, desde un solo link.
 - **Administrar**: agregar unidades nuevas (una por una o pegando una
   lista), agregar/quitar destinos, ver totales.
 
-No requiere iniciar sesion -- cualquiera con el link puede ver y editar.
+## Modo administrador y modo consulta
+
+Todos pueden ver todo (ubicaciones, historial, estado de mantenimiento,
+totales) sin necesidad de ninguna clave. Pero **registrar un movimiento,
+marcar mantenimiento hecho, o agregar/quitar unidades y destinos**
+requiere entrar en **modo administrador** con un PIN (boton "Entrar como
+admin" arriba a la derecha). El PIN se guarda con hash (nunca en texto
+plano) y la sesion queda en ese dispositivo/navegador por 30 dias o hasta
+que alguien haga click en "Salir".
+
+El PIN inicial se define con la variable de entorno `ADMIN_PIN` (ver
+`.env.example` y la seccion de Render abajo). Cambiarlo despues requiere
+generar un nuevo hash y actualizar la fila `Settings.adminPinHash`
+directamente en la base de datos (mismo procedimiento que
+`pallet-repair-tracker` para el PIN de Manager).
 
 ## Correr en tu computadora (para probar antes de desplegar)
 
@@ -79,6 +93,10 @@ siguiente peticion, agregando un par de segundos a esa primera carga).
 4. Cuando Render te pida las variables de entorno (o despues, en la
    pestana **Environment** del servicio), define:
    - `DATABASE_URL` -- el connection string de Neon del paso 1
+   - `ADMIN_PIN` -- el PIN real que van a usar los administradores (no
+     dejes el default de desarrollo)
+   - `AUTH_SECRET` se genera solo (Render lo crea automaticamente por el
+     `generateValue: true` en `render.yaml`)
 5. En el primer despliegue, `docker-entrypoint.sh` corre
    `prisma migrate deploy` y `prisma db seed` automaticamente contra
    Neon, asi que las tablas y el catalogo inicial (cajas, plataformas,
@@ -94,11 +112,12 @@ de Render lo mantiene siempre activo.
 
 ## Notas de diseno
 
-- **Sin inicio de sesion, a proposito**: cualquiera con el link ve y edita
-  los mismos datos -- coincide con como se usa hoy (chofer + despacho
-  compartiendo info en tiempo real). Si mas adelante quieres restringir
-  quien puede editar, se puede agregar un PIN simple como en
-  `pallet-repair-tracker`.
+- **Dos roles, sin cuentas individuales**: Consulta (todos, sin PIN) y
+  Administrador (PIN compartido, no un login por persona) -- igual que
+  Lead/Manager en `pallet-repair-tracker`. El rol vive en una cookie
+  firmada y httpOnly; cada Server Action vuelve a revisarla en el
+  servidor, así que ocultar un boton en la pantalla es solo cosmetico,
+  no la barrera real de seguridad.
 - **"En vivo" = actualizacion automatica cada 20 segundos**, no
   websockets. Para el uso real (consultar ubicaciones, registrar un
   movimiento ocasional) es suficiente y mucho mas simple de mantener; si

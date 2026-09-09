@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { getRole } from "@/lib/session";
 import { ItemType } from "@prisma/client";
 import { z } from "zod";
 
@@ -13,6 +14,10 @@ export async function agregarItems(input: {
   codes: string[];
   type: ItemType;
 }): Promise<{ ok: true; agregados: number; omitidos: string[] } | { ok: false; error: string }> {
+  if ((await getRole()) !== "ADMIN") {
+    return { ok: false, error: "Se requiere modo administrador." };
+  }
+
   const parsed = schema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Datos invalidos." };
 
