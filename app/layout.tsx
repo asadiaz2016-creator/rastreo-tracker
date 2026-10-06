@@ -8,6 +8,7 @@ import { RoleProvider } from "@/components/RoleContext";
 export const metadata: Metadata = {
   title: "Rastreo de Cajas y Plataformas -- CCP",
   description: "Rastreo de cajas de trailer y plataformas -- Custom Crates & Pallets",
+  appleWebApp: { capable: true, title: "Rastreo CCP" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
