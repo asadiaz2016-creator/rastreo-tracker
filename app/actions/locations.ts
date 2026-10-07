@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getRole } from "@/lib/session";
+import { ADMIN_REQUIRED } from "@/lib/errors";
 import { z } from "zod";
 
 const schema = z.object({ name: z.string().trim().min(1).max(100) });
@@ -10,7 +11,7 @@ export async function agregarDestino(
   input: { name: string },
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   if ((await getRole()) !== "ADMIN") {
-    return { ok: false, error: "Se requiere modo administrador." };
+    return { ok: false, error: ADMIN_REQUIRED };
   }
 
   const parsed = schema.safeParse(input);
@@ -29,7 +30,7 @@ export async function eliminarDestino(
   id: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   if ((await getRole()) !== "ADMIN") {
-    return { ok: false, error: "Se requiere modo administrador." };
+    return { ok: false, error: ADMIN_REQUIRED };
   }
 
   const location = await prisma.location.findUnique({

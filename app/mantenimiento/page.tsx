@@ -17,10 +17,11 @@ const ESTILOS = {
 } as const;
 
 export default function MantenimientoPage() {
-  const { role } = useRole();
+  const { role, runAdminAction } = useRole();
   const [items, setItems] = useState<ItemDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function load() {
     const res = await fetch("/api/items", { cache: "no-store" });
@@ -42,7 +43,9 @@ export default function MantenimientoPage() {
 
   async function marcarHecho(itemId: string) {
     setSavingId(itemId);
-    await marcarMantenimientoHecho(itemId);
+    setError(null);
+    const result = await runAdminAction(() => marcarMantenimientoHecho(itemId));
+    if (!result.ok) setError(result.error);
     await load();
     setSavingId(null);
   }
@@ -51,6 +54,7 @@ export default function MantenimientoPage() {
 
   return (
     <div className="flex flex-col gap-2">
+      {error && <p className="text-sm font-bold text-red">{error}</p>}
       {sorted.map((item) => {
         const estilo = ESTILOS[item.maintenanceStatus];
         return (

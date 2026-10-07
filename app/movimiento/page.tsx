@@ -8,7 +8,7 @@ import { useRole } from "@/components/RoleContext";
 import { PinModal } from "@/components/PinModal";
 
 export default function MovimientoPage() {
-  const { role } = useRole();
+  const { role, runAdminAction } = useRole();
   const [showPinModal, setShowPinModal] = useState(false);
   const [items, setItems] = useState<ItemDTO[]>([]);
   const [locations, setLocations] = useState<LocationDTO[]>([]);
@@ -45,7 +45,9 @@ export default function MovimientoPage() {
     if (!selectedItemId || !destinoId) return;
     setSaving(true);
     setMessage(null);
-    const result = await registrarMovimiento({ itemId: selectedItemId, toLocationId: destinoId, note });
+    const result = await runAdminAction(() =>
+      registrarMovimiento({ itemId: selectedItemId, toLocationId: destinoId, note }),
+    );
     setSaving(false);
     if (result.ok) {
       setMessage({ type: "ok", text: "Movimiento registrado." });

@@ -10,7 +10,7 @@ import { useRole } from "@/components/RoleContext";
 import { PinModal } from "@/components/PinModal";
 
 export default function AdministrarPage() {
-  const { role } = useRole();
+  const { role, runAdminAction } = useRole();
   const [showPinModal, setShowPinModal] = useState(false);
   const [items, setItems] = useState<ItemDTO[]>([]);
   const [locations, setLocations] = useState<LocationDTO[]>([]);
@@ -53,7 +53,7 @@ export default function AdministrarPage() {
     if (codes.length === 0) return;
     setSavingBulk(true);
     setBulkMsg(null);
-    const result = await agregarItems({ codes, type: bulkType });
+    const result = await runAdminAction(() => agregarItems({ codes, type: bulkType }));
     setSavingBulk(false);
     if (result.ok) {
       setBulkMsg(
@@ -72,7 +72,7 @@ export default function AdministrarPage() {
     if (!nuevoDestino.trim()) return;
     setSavingDestino(true);
     setDestinoMsg(null);
-    const result = await agregarDestino({ name: nuevoDestino.trim() });
+    const result = await runAdminAction(() => agregarDestino({ name: nuevoDestino.trim() }));
     setSavingDestino(false);
     if (result.ok) {
       setNuevoDestino("");
@@ -84,7 +84,7 @@ export default function AdministrarPage() {
 
   async function handleEliminarDestino(id: string) {
     setDestinoMsg(null);
-    const result = await eliminarDestino(id);
+    const result = await runAdminAction(() => eliminarDestino(id));
     if (!result.ok) setDestinoMsg(result.error);
     load();
   }
@@ -102,7 +102,7 @@ export default function AdministrarPage() {
     if (!confirmado) return;
     setItemMsg(null);
     setDeletingId(item.id);
-    const result = await eliminarItem(item.id);
+    const result = await runAdminAction(() => eliminarItem(item.id));
     setDeletingId(null);
     if (!result.ok) {
       setItemMsg(result.error);

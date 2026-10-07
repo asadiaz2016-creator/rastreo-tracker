@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getRole } from "@/lib/session";
+import { ADMIN_REQUIRED } from "@/lib/errors";
 import { ItemType } from "@prisma/client";
 import { z } from "zod";
 
@@ -15,7 +16,7 @@ export async function agregarItems(input: {
   type: ItemType;
 }): Promise<{ ok: true; agregados: number; omitidos: string[] } | { ok: false; error: string }> {
   if ((await getRole()) !== "ADMIN") {
-    return { ok: false, error: "Se requiere modo administrador." };
+    return { ok: false, error: ADMIN_REQUIRED };
   }
 
   const parsed = schema.safeParse(input);
@@ -50,7 +51,7 @@ export async function eliminarItem(
   id: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   if ((await getRole()) !== "ADMIN") {
-    return { ok: false, error: "Se requiere modo administrador." };
+    return { ok: false, error: ADMIN_REQUIRED };
   }
 
   const item = await prisma.item.findUnique({ where: { id } });
