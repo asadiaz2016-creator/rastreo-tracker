@@ -42,7 +42,10 @@ export default function EstadoPage() {
     const q = search.trim().toLowerCase();
     if (q) {
       list = list.filter(
-        (i) => i.code.toLowerCase().includes(q) || i.locationName.toLowerCase().includes(q),
+        (i) =>
+          i.code.toLowerCase().includes(q) ||
+          i.locationName.toLowerCase().includes(q) ||
+          (i.contenidoName?.toLowerCase().includes(q) ?? false),
       );
     }
     list = [...list];
@@ -111,7 +114,14 @@ export default function EstadoPage() {
                 </span>
               </div>
               <div className="flex items-center justify-between mt-1 text-sm">
-                <span>{item.locationName}</span>
+                <span>
+                  {item.locationName}
+                  {item.contenidoName && (
+                    <span className="ml-2 text-[11px] font-bold px-2 py-0.5 rounded bg-orange/15 text-orange">
+                      {item.contenidoName}
+                    </span>
+                  )}
+                </span>
                 <span className="text-steel">{formatDays(item.daysInLocation)}</span>
               </div>
             </div>

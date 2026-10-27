@@ -3,9 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import { ItemType } from "@prisma/client";
-import type { ItemDTO, LocationDTO } from "@/lib/types";
+import type { ContenidoDTO, ItemDTO, LocationDTO } from "@/lib/types";
 import { agregarItems, eliminarItem } from "@/app/actions/items";
 import { agregarDestino, eliminarDestino } from "@/app/actions/locations";
+import {
+  agregarContenido,
+  cambiarPideContenido,
+  eliminarContenido,
+} from "@/app/actions/contenidos";
 import { useRole } from "@/components/RoleContext";
 import { PinModal } from "@/components/PinModal";
 
@@ -14,6 +19,7 @@ export default function AdministrarPage() {
   const [showPinModal, setShowPinModal] = useState(false);
   const [items, setItems] = useState<ItemDTO[]>([]);
   const [locations, setLocations] = useState<LocationDTO[]>([]);
+  const [contenidos, setContenidos] = useState<ContenidoDTO[]>([]);
 
   const [bulkText, setBulkText] = useState("");
   const [bulkType, setBulkType] = useState<ItemType>(ItemType.CAJA);
@@ -24,17 +30,23 @@ export default function AdministrarPage() {
   const [destinoMsg, setDestinoMsg] = useState<string | null>(null);
   const [savingDestino, setSavingDestino] = useState(false);
 
+  const [nuevoContenido, setNuevoContenido] = useState("");
+  const [contenidoMsg, setContenidoMsg] = useState<string | null>(null);
+  const [savingContenido, setSavingContenido] = useState(false);
+
   const [itemSearch, setItemSearch] = useState("");
   const [itemMsg, setItemMsg] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function load() {
-    const [itemsRes, locsRes] = await Promise.all([
+    const [itemsRes, locsRes, contRes] = await Promise.all([
       fetch("/api/items", { cache: "no-store" }),
       fetch("/api/locations", { cache: "no-store" }),
+      fetch("/api/contenidos", { cache: "no-store" }),
     ]);
     setItems(await itemsRes.json());
     setLocations(await locsRes.json());
+    setContenidos(await contRes.json());
   }
 
   useEffect(() => {
@@ -86,6 +98,37 @@ export default function AdministrarPage() {
     setDestinoMsg(null);
     const result = await runAdminAction(() => eliminarDestino(id));
     if (!result.ok) setDestinoMsg(result.error);
+    load();
+  }
+
+  async function handleCambiarPideContenido(loc: LocationDTO) {
+    setDestinoMsg(null);
+    const result = await runAdminAction(() =>
+      cambiarPideContenido(loc.id, !loc.pideContenido),
+    );
+    if (!result.ok) setDestinoMsg(result.error);
+    load();
+  }
+
+  async function handleAgregarContenido(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nuevoContenido.trim()) return;
+    setSavingContenido(true);
+    setContenidoMsg(null);
+    const result = await runAdminAction(() => agregarContenido({ name: nuevoContenido.trim() }));
+    setSavingContenido(false);
+    if (result.ok) {
+      setNuevoContenido("");
+      load();
+    } else {
+      setContenidoMsg(result.error);
+    }
+  }
+
+  async function handleEliminarContenido(id: string) {
+    setContenidoMsg(null);
+    const result = await runAdminAction(() => eliminarContenido(id));
+    if (!result.ok) setContenidoMsg(result.error);
     load();
   }
 
@@ -253,11 +296,74 @@ export default function AdministrarPage() {
             >
               <span>
                 {loc.name} <span className="text-steel">({loc.itemCount})</span>
+                {loc.pideContenido && role !== "ADMIN" && (
+                  <span className="ml-2 text-[11px] text-steel">pide contenido</span>
+                )}
               </span>
-              {!loc.isDefault && role === "ADMIN" && (
+              {role === "ADMIN" && (
+                <span className="flex items-center gap-3">
+                  <label className="flex items-center gap-1 text-xs text-steel whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={loc.pideContenido}
+                      onChange={() => handleCambiarPideContenido(loc)}
+                    />
+                    Pide contenido
+                  </label>
+                  {!loc.isDefault && (
+                    <button
+                      type="button"
+                      onClick={() => handleEliminarDestino(loc.id)}
+                      className="text-xs font-bold text-red"
+                    >
+                      Eliminar
+                    </button>
+                  )}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-xs font-bold uppercase tracking-wide text-steel mb-2">
+          Contenido (que trae la caja)
+        </h2>
+        <p className="text-sm text-steel mb-2">
+          Opciones que se piden al registrar una llegada a un destino marcado con
+          &quot;Pide contenido&quot; (como CCP).
+        </p>
+        {role === "ADMIN" && (
+          <form onSubmit={handleAgregarContenido} className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={nuevoContenido}
+              onChange={(e) => setNuevoContenido(e.target.value)}
+              placeholder="Nuevo contenido..."
+              className="flex-1 rounded-md border border-line bg-white px-3 py-2 text-sm"
+            />
+            <button
+              type="submit"
+              disabled={savingContenido}
+              className="rounded-md bg-ink text-paper font-bold px-4 py-2 text-sm disabled:opacity-40"
+            >
+              Agregar
+            </button>
+          </form>
+        )}
+        {contenidoMsg && <p className="text-sm font-bold text-red mb-2">{contenidoMsg}</p>}
+        <div className="flex flex-col gap-1">
+          {contenidos.map((c) => (
+            <div
+              key={c.id}
+              className="flex items-center justify-between bg-white border border-line rounded-md px-3 py-2 text-sm"
+            >
+              <span>{c.name}</span>
+              {role === "ADMIN" && (
                 <button
                   type="button"
-                  onClick={() => handleEliminarDestino(loc.id)}
+                  onClick={() => handleEliminarContenido(c.id)}
                   className="text-xs font-bold text-red"
                 >
                   Eliminar

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
-import type { ItemDTO, LocationDTO } from "@/lib/types";
+import type { ContenidoDTO, ItemDTO, LocationDTO } from "@/lib/types";
 import { registrarMovimiento } from "@/app/actions/movements";
 import { useRole } from "@/components/RoleContext";
 import { PinModal } from "@/components/PinModal";
@@ -14,18 +14,22 @@ export default function MovimientoPage() {
   const [locations, setLocations] = useState<LocationDTO[]>([]);
   const [search, setSearch] = useState("");
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [contenidos, setContenidos] = useState<ContenidoDTO[]>([]);
   const [destinoId, setDestinoId] = useState<string>("");
+  const [contenidoId, setContenidoId] = useState<string>("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
 
   async function loadData() {
-    const [itemsRes, locsRes] = await Promise.all([
+    const [itemsRes, locsRes, contRes] = await Promise.all([
       fetch("/api/items", { cache: "no-store" }),
       fetch("/api/locations", { cache: "no-store" }),
+      fetch("/api/contenidos", { cache: "no-store" }),
     ]);
     setItems(await itemsRes.json());
     setLocations(await locsRes.json());
+    setContenidos(await contRes.json());
   }
 
   useEffect(() => {
@@ -39,14 +43,22 @@ export default function MovimientoPage() {
   }, [items, search]);
 
   const selectedItem = items.find((i) => i.id === selectedItemId) ?? null;
+  const destino = locations.find((l) => l.id === destinoId) ?? null;
+  const pideContenido = destino?.pideContenido ?? false;
+  const faltaContenido = pideContenido && !contenidoId;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedItemId || !destinoId) return;
+    if (!selectedItemId || !destinoId || faltaContenido) return;
     setSaving(true);
     setMessage(null);
     const result = await runAdminAction(() =>
-      registrarMovimiento({ itemId: selectedItemId, toLocationId: destinoId, note }),
+      registrarMovimiento({
+        itemId: selectedItemId,
+        toLocationId: destinoId,
+        contenidoId: pideContenido ? contenidoId : undefined,
+        note,
+      }),
     );
     setSaving(false);
     if (result.ok) {
@@ -54,6 +66,7 @@ export default function MovimientoPage() {
       setSelectedItemId(null);
       setSearch("");
       setDestinoId("");
+      setContenidoId("");
       setNote("");
       loadData();
     } else {
@@ -132,7 +145,10 @@ export default function MovimientoPage() {
           </label>
           <select
             value={destinoId}
-            onChange={(e) => setDestinoId(e.target.value)}
+            onChange={(e) => {
+              setDestinoId(e.target.value);
+              setContenidoId("");
+            }}
             required
             className="w-full rounded-md border border-line bg-white px-3 py-2 text-sm"
           >
@@ -144,6 +160,31 @@ export default function MovimientoPage() {
             ))}
           </select>
         </div>
+
+        {pideContenido && (
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wide text-steel mb-1">
+              3. ¿Que trae?
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {contenidos.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setContenidoId(c.id)}
+                  className={clsx(
+                    "rounded-md border px-2 py-3 text-sm font-bold",
+                    contenidoId === c.id
+                      ? "bg-ink text-paper border-ink"
+                      : "bg-white text-ink border-line",
+                  )}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div>
           <label className="block text-xs font-bold uppercase tracking-wide text-steel mb-1">
@@ -165,7 +206,7 @@ export default function MovimientoPage() {
 
         <button
           type="submit"
-          disabled={!selectedItemId || !destinoId || saving}
+          disabled={!selectedItemId || !destinoId || faltaContenido || saving}
           className="rounded-md bg-orange text-white font-bold px-4 py-3 disabled:opacity-40"
         >
           {saving ? "Guardando..." : "Registrar movimiento"}

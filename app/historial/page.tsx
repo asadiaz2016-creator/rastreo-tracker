@@ -85,7 +85,9 @@ export default function HistorialPage() {
           <div className="bg-white border border-line rounded-lg p-3 mb-3">
             <div className="font-bold text-lg">{detail.item.code}</div>
             <div className="text-sm text-steel">
-              Actualmente en {detail.item.locationName} ({formatDays(detail.item.daysInLocation)})
+              Actualmente en {detail.item.locationName}
+              {detail.item.contenidoName && ` -- trae ${detail.item.contenidoName}`} (
+              {formatDays(detail.item.daysInLocation)})
             </div>
           </div>
 
@@ -99,6 +101,11 @@ export default function HistorialPage() {
                     <span className="text-steel">{mv.fromLocationName ?? "(sin registro previo)"}</span>
                     {" -> "}
                     <span className="font-bold">{mv.toLocationName}</span>
+                    {mv.contenidoName && (
+                      <span className="ml-2 text-[11px] font-bold px-2 py-0.5 rounded bg-orange/15 text-orange">
+                        {mv.contenidoName}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between mt-1">
                     <span className="text-xs text-steel">{formatDateTime(mv.createdAt)}</span>

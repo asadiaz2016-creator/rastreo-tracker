@@ -1,10 +1,10 @@
 import { prisma } from "./prisma";
 import { daysBetween, maintenanceStatus } from "./maintenance";
-import type { ItemDTO, LocationDTO, MovementDTO } from "./types";
+import type { ContenidoDTO, ItemDTO, LocationDTO, MovementDTO } from "./types";
 
 export async function getItemsDTO(): Promise<ItemDTO[]> {
   const items = await prisma.item.findMany({
-    include: { currentLocation: true },
+    include: { currentLocation: true, currentContenido: true },
     orderBy: { code: "asc" },
   });
   const now = new Date();
@@ -17,6 +17,7 @@ export async function getItemsDTO(): Promise<ItemDTO[]> {
       locationId: item.currentLocationId,
       locationName: item.currentLocation.name,
       locationSince: item.currentLocationSince.toISOString(),
+      contenidoName: item.currentContenido?.name ?? null,
       daysInLocation: daysBetween(item.currentLocationSince, now),
       lastMaintenanceAt: item.lastMaintenanceAt?.toISOString() ?? null,
       maintenanceStatus: m.status,
@@ -35,8 +36,16 @@ export async function getLocationsDTO(): Promise<LocationDTO[]> {
     id: loc.id,
     name: loc.name,
     isDefault: loc.isDefault,
+    pideContenido: loc.pideContenido,
     itemCount: loc._count.items,
   }));
+}
+
+export async function getContenidosDTO(): Promise<ContenidoDTO[]> {
+  const contenidos = await prisma.contenido.findMany({
+    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+  });
+  return contenidos.map((c) => ({ id: c.id, name: c.name }));
 }
 
 export async function getItemHistorial(
@@ -44,13 +53,13 @@ export async function getItemHistorial(
 ): Promise<{ item: ItemDTO; movements: MovementDTO[] } | null> {
   const item = await prisma.item.findUnique({
     where: { id: itemId },
-    include: { currentLocation: true },
+    include: { currentLocation: true, currentContenido: true },
   });
   if (!item) return null;
 
   const movements = await prisma.movement.findMany({
     where: { itemId },
-    include: { fromLocation: true, toLocation: true },
+    include: { fromLocation: true, toLocation: true, contenido: true },
     orderBy: { createdAt: "asc" },
   });
 
@@ -62,6 +71,7 @@ export async function getItemHistorial(
       id: mv.id,
       fromLocationName: mv.fromLocation?.name ?? null,
       toLocationName: mv.toLocation.name,
+      contenidoName: mv.contenido?.name ?? null,
       note: mv.note,
       createdAt: mv.createdAt.toISOString(),
       durationDays: daysBetween(mv.createdAt, endDate),
@@ -79,6 +89,7 @@ export async function getItemHistorial(
     locationId: item.currentLocationId,
     locationName: item.currentLocation.name,
     locationSince: item.currentLocationSince.toISOString(),
+    contenidoName: item.currentContenido?.name ?? null,
     daysInLocation: daysBetween(item.currentLocationSince, now2),
     lastMaintenanceAt: item.lastMaintenanceAt?.toISOString() ?? null,
     maintenanceStatus: m.status,

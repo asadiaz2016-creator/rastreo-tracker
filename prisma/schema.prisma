@@ -27,6 +27,8 @@ model Location {
   // since it's the default/base location every item falls back to.
   isDefault Boolean  @default(false)
   sortOrder Int      @default(0)
+  // Destinos donde, al llegar, hay que anotar que trae la caja (p.ej. CCP).
+  pideContenido Boolean @default(false)
   createdAt DateTime @default(now())
 
   items         Item[]
@@ -44,6 +46,11 @@ model Item {
   // When the item arrived at currentLocation -- used to compute "days in
   // this location" without re-scanning the movement history every time.
   currentLocationSince DateTime @default(now())
+
+  // Lo que trae la caja en su ubicacion actual. Solo se llena al llegar a
+  // un destino con pideContenido; se limpia al moverla a cualquier otro.
+  currentContenidoId String?
+  currentContenido   Contenido? @relation(fields: [currentContenidoId], references: [id], onDelete: SetNull)
 
   lastMaintenanceAt DateTime?
 
@@ -66,9 +73,24 @@ model Movement {
   toLocationId   String
   toLocation     Location  @relation("MovementTo", fields: [toLocationId], references: [id])
 
+  contenidoId String?
+  contenido   Contenido? @relation(fields: [contenidoId], references: [id], onDelete: SetNull)
+
   note String?
 
   createdAt DateTime @default(now())
 
   @@index([itemId, createdAt])
+}
+
+// Catalogo de lo que puede traer una caja al llegar (producto terminado,
+// scrap pallets, vacia, carton...). Se administra desde Administrar.
+model Contenido {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  items     Item[]
+  movements Movement[]
 }

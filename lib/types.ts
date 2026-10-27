@@ -8,6 +8,7 @@ export type ItemDTO = {
   locationId: string;
   locationName: string;
   locationSince: string;
+  contenidoName: string | null;
   daysInLocation: number;
   lastMaintenanceAt: string | null;
   maintenanceStatus: MaintenanceStatus;
@@ -19,13 +20,20 @@ export type LocationDTO = {
   id: string;
   name: string;
   isDefault: boolean;
+  pideContenido: boolean;
   itemCount: number;
+};
+
+export type ContenidoDTO = {
+  id: string;
+  name: string;
 };
 
 export type MovementDTO = {
   id: string;
   fromLocationName: string | null;
   toLocationName: string;
+  contenidoName: string | null;
   note: string | null;
   createdAt: string;
   durationDays: number | null;
