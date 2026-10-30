@@ -38,7 +38,9 @@ export async function eliminarDestino(
     include: { _count: { select: { items: true } } },
   });
   if (!location) return { ok: false, error: "No se encontro ese destino." };
-  if (location.isDefault) return { ok: false, error: "Patio no se puede eliminar." };
+  if (location.isDefault) {
+    return { ok: false, error: `${location.name} es el destino base y no se puede eliminar.` };
+  }
   if (location._count.items > 0) {
     return {
       ok: false,

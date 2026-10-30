@@ -40,10 +40,12 @@ async function main() {
     await prisma.settings.create({ data: { id: 1, adminPinHash } });
   }
 
-  const patio = await prisma.location.upsert({
-    where: { name: "Patio" },
+  // CCP es el destino base: ahi llegan las cajas nuevas, y al regresar
+  // se anota que traen.
+  const ccp = await prisma.location.upsert({
+    where: { name: "CCP" },
     update: {},
-    create: { name: "Patio", isDefault: true, sortOrder: 0 },
+    create: { name: "CCP", isDefault: true, sortOrder: 0, pideContenido: true },
   });
 
   for (const [i, name] of DESTINOS.entries()) {
@@ -54,13 +56,6 @@ async function main() {
     });
   }
 
-  // CCP es donde regresan las cajas; al llegar se anota que traen.
-  await prisma.location.upsert({
-    where: { name: "CCP" },
-    update: {},
-    create: { name: "CCP", sortOrder: DESTINOS.length + 1, pideContenido: true },
-  });
-
   const seedItems = [
     ...CAJAS.map((code) => ({ code, type: ItemType.CAJA })),
     ...PLATAFORMAS.map((code) => ({ code, type: ItemType.PLATAFORMA })),
@@ -70,12 +65,12 @@ async function main() {
     await prisma.item.upsert({
       where: { code },
       update: {},
-      create: { code, type, currentLocationId: patio.id },
+      create: { code, type, currentLocationId: ccp.id },
     });
   }
 
   console.log(
-    `Listo: ${DESTINOS.length + 2} destinos, ${CAJAS.length} cajas, ${PLATAFORMAS.length} plataformas.`,
+    `Listo: ${DESTINOS.length + 1} destinos, ${CAJAS.length} cajas, ${PLATAFORMAS.length} plataformas.`,
   );
 }
 

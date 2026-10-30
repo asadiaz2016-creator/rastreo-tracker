@@ -8,6 +8,8 @@ export type ItemDTO = {
   locationId: string;
   locationName: string;
   locationSince: string;
+  locationPideContenido: boolean;
+  contenidoId: string | null;
   contenidoName: string | null;
   daysInLocation: number;
   lastMaintenanceAt: string | null;

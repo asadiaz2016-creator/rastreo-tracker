@@ -125,8 +125,8 @@ de Render lo mantiene siempre activo.
   movimiento ocasional) es suficiente y mucho mas simple de mantener; si
   el equipo crece y se necesita instantaneo, se puede agregar mas
   adelante.
-- **"Patio" nunca se puede eliminar** (`Location.isDefault`): es el
-  destino base al que vuelve cada unidad. Un destino con unidades
+- **"CCP" nunca se puede eliminar** (`Location.isDefault`): es el
+  destino base donde llegan las unidades nuevas. Un destino con unidades
   asignadas tampoco se puede eliminar (hay que mover esas unidades
   primero).
 - **El mantenimiento solo guarda la ultima fecha** (`Item.lastMaintenanceAt`);

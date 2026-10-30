@@ -24,8 +24,8 @@ export async function agregarItems(input: {
 
   const codes = Array.from(new Set(parsed.data.codes.map((c) => c.toUpperCase())));
 
-  const patio = await prisma.location.findFirst({ where: { isDefault: true } });
-  if (!patio) return { ok: false, error: "No existe la ubicacion Patio." };
+  const base = await prisma.location.findFirst({ where: { isDefault: true } });
+  if (!base) return { ok: false, error: "No existe el destino base (CCP)." };
 
   const existentes = await prisma.item.findMany({
     where: { code: { in: codes } },
@@ -39,7 +39,7 @@ export async function agregarItems(input: {
       data: nuevos.map((code) => ({
         code,
         type: parsed.data.type,
-        currentLocationId: patio.id,
+        currentLocationId: base.id,
       })),
     });
   }
